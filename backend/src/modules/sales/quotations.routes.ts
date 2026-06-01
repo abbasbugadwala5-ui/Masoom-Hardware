@@ -176,7 +176,8 @@ quotationsRouter.post(
   requireAuth,
   requirePermission('quotation.write'),
   asyncHandler(async (req, res) => {
-    const action = statusActions[req.params.action];
+    const action = statusActions[req.params.action as string];
+    if (!action) throw BadRequest('Unknown action');
     const q = await prisma.quotation.findUnique({ where: { id: req.params.id } });
     if (!q) throw NotFound('Quotation not found');
     if (!action.from.includes(q.status)) throw BadRequest(`Cannot ${req.params.action} a ${q.status} quotation`);

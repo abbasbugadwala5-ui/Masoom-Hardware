@@ -1,9 +1,14 @@
 /* eslint-disable no-console */
 import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
-import { env } from '../src/config/env';
-
 const prisma = new PrismaClient();
+
+// Read admin seed creds straight from the environment so this script has no
+// dependency on src/ (lets it run inside the slim production image via tsx).
+const env = {
+  SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? 'admin@masoom.ae',
+  SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? 'Admin@12345',
+};
 
 /**
  * Permission keys are dot-namespaced: `<entity>.<action>`.

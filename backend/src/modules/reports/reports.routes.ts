@@ -27,7 +27,7 @@ function resolveRange(q: z.infer<typeof rangeSchema>) {
   return { from, to: toEnd };
 }
 
-const POSTED = ['POSTED', 'PAID', 'PART_PAID'] as const;
+const POSTED: ('POSTED' | 'PAID' | 'PART_PAID')[] = ['POSTED', 'PAID', 'PART_PAID'];
 
 /* ───────────────────────── VAT RETURN (FTA-shaped) ───────────────────────── */
 reportsRouter.get(
@@ -45,17 +45,17 @@ reportsRouter.get(
       prisma.purchaseInvoice.aggregate({ _sum: { subtotal: true, vatAmount: true }, where: { status: { in: POSTED }, date: dateRange } }),
     ]);
 
-    const outputTaxable = round2(num(salesAgg._sum.taxableAmount) - num(cnAgg._sum.taxableAmount));
-    const outputVat = round2(num(salesAgg._sum.vatAmount) - num(cnAgg._sum.vatAmount));
-    const inputTaxable = round2(num(purchaseAgg._sum.subtotal));
-    const inputVat = round2(num(purchaseAgg._sum.vatAmount));
+    const outputTaxable = round2(num(salesAgg._sum?.taxableAmount) - num(cnAgg._sum?.taxableAmount));
+    const outputVat = round2(num(salesAgg._sum?.vatAmount) - num(cnAgg._sum?.vatAmount));
+    const inputTaxable = round2(num(purchaseAgg._sum?.subtotal));
+    const inputVat = round2(num(purchaseAgg._sum?.vatAmount));
     const netPayable = round2(outputVat - inputVat);
 
     res.json({
       data: {
         period: { from, to },
-        sales: { taxable: round2(num(salesAgg._sum.taxableAmount)), vat: round2(num(salesAgg._sum.vatAmount)) },
-        creditNotes: { taxable: round2(num(cnAgg._sum.taxableAmount)), vat: round2(num(cnAgg._sum.vatAmount)) },
+        sales: { taxable: round2(num(salesAgg._sum?.taxableAmount)), vat: round2(num(salesAgg._sum?.vatAmount)) },
+        creditNotes: { taxable: round2(num(cnAgg._sum?.taxableAmount)), vat: round2(num(cnAgg._sum?.vatAmount)) },
         outputVat: { taxable: outputTaxable, vat: outputVat },
         inputVat: { taxable: inputTaxable, vat: inputVat },
         netPayable,
@@ -94,13 +94,13 @@ reportsRouter.get(
       data: {
         period: { from, to },
         invoiceCount: count,
-        taxable: round2(num(agg._sum.taxableAmount)),
-        vat: round2(num(agg._sum.vatAmount)),
-        total: round2(num(agg._sum.total)),
-        collected: round2(num(agg._sum.amountPaid)),
-        outstanding: round2(num(agg._sum.total) - num(agg._sum.amountPaid)),
-        topCustomers: topCustomers.map((c) => ({ ...cmap.get(c.customerId), revenue: round2(num(c._sum.total)) })),
-        topProducts: topProducts.map((p) => ({ ...pmap.get(p.productId), quantity: round2(num(p._sum.quantity)), revenue: round2(num(p._sum.total)) })),
+        taxable: round2(num(agg._sum?.taxableAmount)),
+        vat: round2(num(agg._sum?.vatAmount)),
+        total: round2(num(agg._sum?.total)),
+        collected: round2(num(agg._sum?.amountPaid)),
+        outstanding: round2(num(agg._sum?.total) - num(agg._sum?.amountPaid)),
+        topCustomers: topCustomers.map((c) => ({ ...cmap.get(c.customerId), revenue: round2(num(c._sum?.total)) })),
+        topProducts: topProducts.map((p) => ({ ...pmap.get(p.productId), quantity: round2(num(p._sum?.quantity)), revenue: round2(num(p._sum?.total)) })),
       },
     });
   }),
@@ -217,10 +217,10 @@ reportsRouter.get(
       prisma.debitNote.aggregate({ _sum: { total: true }, where: { date: dateRange } }),
       prisma.expense.aggregate({ _sum: { amount: true }, where: { date: dateRange } }),
     ]);
-    const revenue = round2(num(sales._sum.taxableAmount) - num(creditNotes._sum.taxableAmount));
-    const cogs = round2(num(purchases._sum.subtotal) - num(debitNotes._sum.total));
+    const revenue = round2(num(sales._sum?.taxableAmount) - num(creditNotes._sum?.taxableAmount));
+    const cogs = round2(num(purchases._sum?.subtotal) - num(debitNotes._sum?.total));
     const grossProfit = round2(revenue - cogs);
-    const opex = round2(num(expenses._sum.amount));
+    const opex = round2(num(expenses._sum?.amount));
     const netProfit = round2(grossProfit - opex);
     res.json({ data: { period: { from, to }, revenue, cogs, grossProfit, expenses: opex, netProfit, marginPct: revenue ? round2((netProfit / revenue) * 100) : 0 } });
   }),

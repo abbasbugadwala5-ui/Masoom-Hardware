@@ -15,7 +15,7 @@ export function attachPdfRoute(router: Router, kind: DocKind, readPermission: st
     requirePermission(readPermission),
     asyncHandler(async (req, res) => {
       const force = req.query.refresh === '1' || req.query.refresh === 'true';
-      const { buffer, filename } = await getDocumentPdf(kind, req.params.id, force);
+      const { buffer, filename } = await getDocumentPdf(kind, req.params.id as string, force);
       const disposition = req.query.download ? 'attachment' : 'inline';
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `${disposition}; filename="${filename}"`);

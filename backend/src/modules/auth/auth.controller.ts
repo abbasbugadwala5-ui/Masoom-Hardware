@@ -9,7 +9,9 @@ function setRefreshCookie(res: Response, token: string) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
     secure: env.COOKIE_SECURE,
-    sameSite: 'lax',
+    // Cross-site (frontend and API on different domains, e.g. Render) needs
+    // SameSite=None+Secure so the refresh cookie is sent on XHR. Locally use Lax.
+    sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
     domain: env.COOKIE_DOMAIN === 'localhost' ? undefined : env.COOKIE_DOMAIN,
     path: '/',
     maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -20,7 +22,9 @@ function clearRefreshCookie(res: Response) {
   res.clearCookie(REFRESH_COOKIE, {
     httpOnly: true,
     secure: env.COOKIE_SECURE,
-    sameSite: 'lax',
+    // Cross-site (frontend and API on different domains, e.g. Render) needs
+    // SameSite=None+Secure so the refresh cookie is sent on XHR. Locally use Lax.
+    sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
     domain: env.COOKIE_DOMAIN === 'localhost' ? undefined : env.COOKIE_DOMAIN,
     path: '/',
   });

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { requireAuth, requirePermission } from '../../middleware/auth';
 import { validate } from '../../middleware/validate';
@@ -49,13 +50,13 @@ invoicesRouter.get(
     const customerId = typeof req.query.customerId === 'string' ? req.query.customerId : undefined;
     const statusRaw = typeof req.query.status === 'string' ? req.query.status : undefined;
     // `status=open` is a convenience filter for unpaid/partly-paid posted invoices.
-    const statusFilter =
+    const statusFilter: Prisma.InvoiceWhereInput =
       statusRaw === 'open'
-        ? { status: { in: ['POSTED', 'PART_PAID'] as const } }
+        ? { status: { in: ['POSTED', 'PART_PAID'] } }
         : statusRaw
           ? { status: statusRaw as 'DRAFT' | 'POSTED' | 'PAID' | 'PART_PAID' | 'CANCELLED' }
           : {};
-    const where = {
+    const where: Prisma.InvoiceWhereInput = {
       ...(customerId ? { customerId } : {}),
       ...statusFilter,
       ...(q

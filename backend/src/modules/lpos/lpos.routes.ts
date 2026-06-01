@@ -144,7 +144,8 @@ lposRouter.post(
   requireAuth,
   requirePermission('lpo.write'),
   asyncHandler(async (req, res) => {
-    const action = lpoActions[req.params.action];
+    const action = lpoActions[req.params.action as string];
+    if (!action) throw BadRequest('Unknown action');
     const lpo = await prisma.lpo.findUnique({ where: { id: req.params.id } });
     if (!lpo) throw NotFound('LPO not found');
     if (!action.from.includes(lpo.status)) throw BadRequest(`Cannot ${req.params.action} a ${lpo.status} LPO`);

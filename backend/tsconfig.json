@@ -20,6 +20,6 @@
       "@shared/*": ["../../shared/src/*"]
     }
   },
-  "include": ["src/**/*.ts", "prisma/seed.ts"],
-  "exclude": ["node_modules", "dist", "storage"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "storage", "prisma/seed.ts"]
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma';
 import { requireAuth, requirePermission } from '../../middleware/auth';
 import { validate } from '../../middleware/validate';
@@ -44,10 +45,10 @@ purchaseInvoicesRouter.get(
     const { page, pageSize, q, sort, order } = req.query as unknown as z.infer<typeof pageQuerySchema>;
     const supplierId = typeof req.query.supplierId === 'string' ? req.query.supplierId : undefined;
     const statusRaw = typeof req.query.status === 'string' ? req.query.status : undefined;
-    const statusFilter = statusRaw === 'open'
-      ? { status: { in: ['POSTED', 'PART_PAID'] as const } }
+    const statusFilter: Prisma.PurchaseInvoiceWhereInput = statusRaw === 'open'
+      ? { status: { in: ['POSTED', 'PART_PAID'] } }
       : statusRaw ? { status: statusRaw as 'DRAFT' | 'POSTED' | 'PAID' | 'PART_PAID' | 'CANCELLED' } : {};
-    const where = {
+    const where: Prisma.PurchaseInvoiceWhereInput = {
       ...(supplierId ? { supplierId } : {}),
       ...statusFilter,
       ...(q ? { OR: [{ number: { contains: q, mode: 'insensitive' as const } }, { supplierInvoiceNo: { contains: q, mode: 'insensitive' as const } }, { supplier: { name: { contains: q, mode: 'insensitive' as const } } }] } : {}),

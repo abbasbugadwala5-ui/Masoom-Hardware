@@ -1,8 +1,9 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-  : '/api';
+// Always call the API same-origin via Next's rewrite proxy (see next.config.ts).
+// Keeps cookies same-site and avoids CORS — identical in local dev and on
+// split-domain hosts like Render.
+const baseURL = '/api';
 
 export const api = axios.create({
   baseURL,
