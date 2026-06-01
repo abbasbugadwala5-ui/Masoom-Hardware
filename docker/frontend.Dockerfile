@@ -1,0 +1,25 @@
+# ── deps ─────────────────────────────────────────────────────────────────────
+FROM node:20-bookworm-slim AS deps
+WORKDIR /app
+COPY frontend/package*.json ./
+COPY shared/package*.json ../shared/
+RUN npm install
+
+# ── build ────────────────────────────────────────────────────────────────────
+FROM deps AS build
+COPY frontend ./
+COPY shared ../shared
+RUN npm run build
+
+# ── runtime ──────────────────────────────────────────────────────────────────
+FROM node:20-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
+COPY --from=build /app/next.config.ts ./
+
+EXPOSE 3000
+CMD ["npx", "next", "start", "-p", "3000"]

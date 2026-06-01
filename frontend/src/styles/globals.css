@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+html, body {
+  @apply bg-white text-ink-900;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';   /* Inter stylistic sets — sharper i/l/0 */
+}
+
+/* Body text — Inter at slightly tighter tracking is more refined */
+body {
+  letter-spacing: -0.005em;
+}
+
+::selection { @apply bg-brand-500 text-ink-950; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track  { background: #f4f4f5; }
+::-webkit-scrollbar-thumb  { background: #d4d4d8; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #ffcc00; }
+
+.container-page { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+
+/* Display class — always heavy Archivo with refined tracking.
+   Override with text-* / tracking-* utilities as needed. */
+.font-display {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'ss01';
+}
+
+/* Large display headings benefit from even tighter tracking */
+.font-display.text-4xl,
+.font-display.text-5xl,
+.font-display.text-6xl,
+.font-display.text-7xl,
+.font-display.text-8xl {
+  letter-spacing: -0.035em;
+}
+
+/* When display is used at small sizes with uppercase/tracking (kickers, labels),
+   keep the existing letter-spacing utilities — don't override. */
+.font-display.uppercase, .font-display.tracking-widest, .font-display.tracking-wider {
+  letter-spacing: revert;
+}
+
+/* Industrial caution stripe */
+.caution-stripe {
+  height: 6px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    theme('colors.brand.500') 0 14px,
+    theme('colors.ink.950')   14px 28px
+  );
+}
+
+/* Marquee */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee      { animation: marquee 32s linear infinite; }
+.animate-marquee-slow { animation: marquee 60s linear infinite; }
+
+.text-yellow-glow {
+  text-shadow:
+    0 0 1px rgba(255,204,0,.5),
+    0 0 28px rgba(255,204,0,.35);
+}
+
+/* Animated underline */
+.link-underline {
+  background-image: linear-gradient(theme('colors.brand.500'), theme('colors.brand.500'));
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size .3s ease;
+}
+.link-underline:hover { background-size: 100% 2px; }
+
+/* Shimmer overlay for primary CTAs */
+@keyframes shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+.btn-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+.btn-shimmer::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+.btn-shimmer:hover::after { animation: shimmer .9s ease forwards; }
+
+/* Subtle chip used on light cards */
+.chip {
+  @apply inline-flex items-center gap-1 rounded-sm bg-ink-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-ink-700 ring-1 ring-ink-100;
+  letter-spacing: 0.08em;
+}
+
+/* Dark hero/page banner used on inner pages */
+.banner-dark {
+  background-image:
+    linear-gradient(to right, rgba(5,5,7,.94), rgba(5,5,7,.78)),
+    radial-gradient(circle at 30% 30%, rgba(255,204,0,.22), transparent 55%),
+    radial-gradient(circle at 80% 70%, rgba(255,204,0,.10), transparent 60%);
+  background-color: #0d0d11;
+}
+
+/* Tabular numbers in tables and KPIs for cleaner alignment */
+.font-mono, .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── PRINT STYLES ──────────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything except the print zone */
+  body * { visibility: hidden; }
+  .print-zone, .print-zone * { visibility: visible; }
+  .print-zone {
+    position: absolute; left: 0; top: 0; width: 100%;
+  }
+  .no-print { display: none !important; }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  @page { size: A4; margin: 12mm; }
+}
