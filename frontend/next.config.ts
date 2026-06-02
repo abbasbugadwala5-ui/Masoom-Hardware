@@ -11,15 +11,8 @@ const config: NextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
-  async rewrites() {
-    // Proxy /api/* to the backend. NEXT_PUBLIC_API_URL may be a bare host
-    // (e.g. Render's fromService value) — normalise to an https URL.
-    const raw = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-    const api = /^https?:\/\//.test(raw) ? raw : `https://${raw}`;
-    return [
-      { source: '/api/:path*', destination: `${api}/api/:path*` },
-    ];
-  },
+  // /api/* is proxied to the backend at runtime by src/app/api/[...path]/route.ts
+  // (next.config rewrites are build-time only, which breaks split-domain hosts).
 };
 
 export default config;

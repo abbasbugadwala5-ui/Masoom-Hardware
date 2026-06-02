@@ -39,7 +39,7 @@ services:
       - key: SEED_ADMIN_PASSWORD
         value: Admin@12345
 
-  # ── Frontend (Next.js) — proxies /api/* to the backend, so no CORS/cookie issues ──
+  # ── Frontend (Next.js) — proxies /api/* to the backend at runtime (no CORS/cookie issues) ──
   - type: web
     name: masoom-web
     runtime: docker
@@ -47,8 +47,8 @@ services:
     dockerfilePath: ./docker/frontend.Dockerfile
     dockerContext: .
     envVars:
-      # Resolves to the API service's real .onrender.com host (next.config adds https://).
-      - key: NEXT_PUBLIC_API_URL
+      # Read at runtime by the /api proxy route → resolves to the API's real host.
+      - key: BACKEND_URL
         fromService:
           name: masoom-api
           type: web

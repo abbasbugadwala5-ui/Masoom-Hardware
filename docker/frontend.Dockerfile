@@ -7,9 +7,6 @@ RUN npm install
 
 # ── build ────────────────────────────────────────────────────────────────────
 FROM deps AS build
-# NEXT_PUBLIC_* vars are inlined at build time, so the API URL must be present here.
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY frontend ./
 COPY shared ../shared
 RUN npm run build
