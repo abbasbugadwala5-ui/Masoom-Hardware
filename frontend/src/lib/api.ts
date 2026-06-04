@@ -8,6 +8,9 @@ const baseURL = '/api';
 export const api = axios.create({
   baseURL,
   withCredentials: true,    // send refresh cookie
+  // Render's free tier sleeps after ~15 min idle and takes ~40s to wake. Cap the
+  // wait so a request never hangs forever — the login flow retries on timeout.
+  timeout: 90_000,
 });
 
 let accessToken: string | null = null;

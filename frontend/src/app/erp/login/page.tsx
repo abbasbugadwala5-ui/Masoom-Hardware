@@ -14,22 +14,44 @@ export default function ErpLoginPage() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    try {
-      await login(email, password);
-      router.replace('/erp');
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ??
-        'Login failed';
-      setError(msg);
-    } finally {
-      setSubmitting(false);
+    setStatus(null);
+
+    // On Render's free tier the API sleeps after ~15 min idle and the first
+    // request after that takes ~40s while it wakes. A cold start surfaces as a
+    // timeout or a 502/503/504 from the proxy — NOT a real credential error — so
+    // we retry a few times and only stop early on a genuine auth/rate-limit reply.
+    const MAX_TRIES = 3;
+    for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+      if (attempt > 1) setStatus('Server is waking up (~40s on first try)… retrying.');
+      try {
+        await login(email, password);
+        router.replace('/erp');
+        return;
+      } catch (err: unknown) {
+        const e = err as {
+          response?: { status?: number; data?: { error?: { message?: string } } };
+        };
+        const httpStatus = e.response?.status;
+
+        // Real auth failure or rate limit — no point retrying.
+        if (httpStatus === 401 || httpStatus === 429) {
+          setError(e.response?.data?.error?.message ?? 'Login failed');
+          break;
+        }
+        // Cold start / network blip (timeout, 502/503/504) — retry until tries run out.
+        if (attempt === MAX_TRIES) {
+          setError('Server is not responding yet. Please wait a moment and try again.');
+        }
+      }
     }
+    setStatus(null);
+    setSubmitting(false);
   }
 
   return (
@@ -88,12 +110,22 @@ export default function ErpLoginPage() {
               </p>
             )}
 
+            {status && !error && (
+              <p className="rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                {status}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={submitting}
               className="btn-shimmer inline-flex w-full items-center justify-center gap-2 rounded-sm bg-brand-500 px-4 py-3 text-sm font-bold uppercase tracking-widest text-ink-950 hover:bg-brand-400 disabled:opacity-60"
             >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
+              {submitting ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> {status ? 'Waking server…' : 'Signing in…'}</>
+              ) : (
+                <>Sign in <ArrowRight className="h-4 w-4" /></>
+              )}
             </button>
           </form>
         </div>
