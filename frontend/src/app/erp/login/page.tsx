@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -56,10 +55,6 @@ export default function ErpLoginPage() {
       {/* Right — form */}
       <section className="flex flex-col justify-center bg-white px-6 py-12 sm:px-10">
         <div className="mx-auto w-full max-w-md">
-          <Link href="/" className="mb-8 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ink-500 hover:text-brand-600 lg:hidden">
-            ← Back to site
-          </Link>
-
           <p className="text-xs font-bold uppercase tracking-widest text-brand-600">ERP Login</p>
           <h2 className="mt-2 font-display text-4xl tracking-tight text-ink-900">SIGN IN</h2>
           <p className="mt-1 text-sm text-ink-500">Enter your credentials to access the portal.</p>
@@ -101,10 +96,6 @@ export default function ErpLoginPage() {
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
             </button>
           </form>
-
-          <p className="mt-6 text-center text-xs text-ink-500">
-            Not a trade customer yet? <Link href="/rfq" className="font-bold text-brand-600 hover:text-brand-500">Open an account →</Link>
-          </p>
         </div>
       </section>
     </main>

@@ -10,7 +10,6 @@ import {
   ClipboardList, Undo2, HandCoins, PackagePlus,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
-import { Logo } from '@/components/site/Logo';
 
 const NAV: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; perm?: string; section?: string }[] = [
   { href: '/erp',                 label: 'Dashboard',      icon: LayoutDashboard },
@@ -61,7 +60,7 @@ export default function ErpLayout({ children }: { children: ReactNode }) {
       {/* SIDEBAR */}
       <aside className="flex h-screen flex-col bg-ink-950 text-ink-200">
         <div className="flex h-16 items-center border-b border-ink-800 px-5">
-          <Logo variant="light" size="sm" />
+          <span className="font-display text-lg font-bold tracking-widest text-white">MASOOM <span className="text-brand-500">ERP</span></span>
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3">
