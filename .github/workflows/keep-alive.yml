@@ -1,0 +1,28 @@
+# Keeps the Render free-tier services awake so users never hit the ~40s cold
+# start. Render sleeps a free web service after ~15 min idle; this pings every
+# 10 min (with margin for GitHub's scheduler delays) to prevent that.
+#
+# Note: GitHub disables scheduled workflows after 60 days with no repo activity
+# — any push (or the manual "Run workflow" button) re-enables it.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes
+  workflow_dispatch: {}        # allow manual run from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API (wakes backend; first call after sleep can take ~40s)
+        run: |
+          curl -fsS --max-time 90 --retry 2 --retry-delay 5 \
+            https://masoom-api.onrender.com/api/health \
+            && echo "API awake" || echo "API ping failed (will retry next run)"
+
+      - name: Ping web frontend
+        run: |
+          curl -fsS --max-time 90 --retry 2 --retry-delay 5 -o /dev/null \
+            https://masoom-web.onrender.com/ \
+            && echo "Web awake" || echo "Web ping failed (will retry next run)"
