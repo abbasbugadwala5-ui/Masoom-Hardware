@@ -7,7 +7,7 @@ import {
 } from './auth.schema';
 import { validate } from '../../middleware/validate';
 import { requireAuth, requirePermission } from '../../middleware/auth';
-import { authLimiter } from '../../middleware/rateLimit';
+import { authLimiter, refreshLimiter } from '../../middleware/rateLimit';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const authRouter = Router();
@@ -21,7 +21,7 @@ authRouter.post(
 );
 
 authRouter.post('/login',   authLimiter, validate(loginSchema),  asyncHandler(AuthController.login));
-authRouter.post('/refresh', authLimiter,                          asyncHandler(AuthController.refresh));
+authRouter.post('/refresh', refreshLimiter,                       asyncHandler(AuthController.refresh));
 authRouter.post('/logout',                                        asyncHandler(AuthController.logout));
 authRouter.get ('/me',      requireAuth,                          asyncHandler(AuthController.me));
 
