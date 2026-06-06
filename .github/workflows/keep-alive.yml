@@ -1,6 +1,13 @@
 # Keeps the Render free-tier services awake so users never hit the ~40s cold
-# start. Render sleeps a free web service after ~15 min idle; this pings every
-# 10 min (with margin for GitHub's scheduler delays) to prevent that.
+# start. Render sleeps a free web service after ~15 min idle.
+#
+# Why a self-looping job instead of a plain `*/10` cron:
+# GitHub throttles scheduled workflows hard on free/public repos — a `*/10`
+# schedule actually fired only every ~90 min in practice, long enough for the
+# backend to fall asleep between pings. Instead, ONE run loops internally and
+# pings every 5 min for ~5h50m, so coverage doesn't depend on cron timing.
+# Scheduled every 2h with long runs => overlapping coverage even if GitHub
+# delays or skips a trigger. Public repo => Actions minutes are free.
 #
 # Note: GitHub disables scheduled workflows after 60 days with no repo activity
 # — any push (or the manual "Run workflow" button) re-enables it.
@@ -8,21 +15,28 @@ name: keep-alive
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # every 10 minutes
-  workflow_dispatch: {}        # allow manual run from the Actions tab
+    - cron: '0 */2 * * *'   # every 2h; each run self-loops ~5h50m so runs overlap
+  workflow_dispatch: {}        # manual trigger from the Actions tab
+
+# Allow overlapping runs — the overlap is what guarantees continuous coverage.
+concurrency:
+  group: keep-alive-${{ github.run_id }}
 
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 355       # just under GitHub's 6h job limit
     steps:
-      - name: Ping API (wakes backend; first call after sleep can take ~40s)
+      - name: Ping Render services every 5 min for ~5h50m
         run: |
-          curl -fsS --max-time 90 --retry 2 --retry-delay 5 \
-            https://masoom-api.onrender.com/api/health \
-            && echo "API awake" || echo "API ping failed (will retry next run)"
-
-      - name: Ping web frontend
-        run: |
-          curl -fsS --max-time 90 --retry 2 --retry-delay 5 -o /dev/null \
-            https://masoom-web.onrender.com/ \
-            && echo "Web awake" || echo "Web ping failed (will retry next run)"
+          END=$(( $(date +%s) + 350*60 ))
+          while [ "$(date +%s)" -lt "$END" ]; do
+            now=$(date -u +%H:%M:%S)
+            curl -fsS --max-time 90 --retry 2 --retry-delay 5 -o /dev/null \
+              https://masoom-api.onrender.com/api/health \
+              && echo "$now API ok" || echo "$now API fail"
+            curl -fsS --max-time 90 --retry 2 --retry-delay 5 -o /dev/null \
+              https://masoom-web.onrender.com/ \
+              && echo "$now web ok" || echo "$now web fail"
+            sleep 300
+          done
